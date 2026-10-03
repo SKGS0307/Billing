@@ -1,0 +1,4 @@
+import { Link } from 'react-router-dom';
+
+export function ForbiddenPage() { return <div className="mx-auto max-w-lg py-20 text-center"><p className="text-sm font-bold uppercase tracking-[0.2em] text-gold-600">Access denied</p><h2 className="mt-3 text-3xl font-bold">You don’t have permission</h2><p className="mt-3 text-stone-600">Ask an administrator if your store responsibilities require this access.</p><Link className="button-primary mt-7" to="/">Return to overview</Link></div>; }
+export function NotFoundPage() { return <div className="grid min-h-screen place-items-center bg-stone-50 p-6 text-center"><div><p className="text-sm font-bold uppercase tracking-[0.2em] text-gold-600">404</p><h1 className="mt-3 text-3xl font-bold">Page not found</h1><Link className="button-primary mt-7" to="/">Return to store</Link></div></div>; }

@@ -1,0 +1,46 @@
+{
+  "name": "@trends-mart/backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "npm run db:generate && tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src prisma --max-warnings=0",
+    "test": "vitest run",
+    "db:generate": "node --env-file=../.env ../node_modules/prisma/build/index.js generate",
+    "db:migrate": "node --env-file=../.env ../node_modules/prisma/build/index.js migrate deploy",
+    "db:migrate:dev": "node --env-file=../.env ../node_modules/prisma/build/index.js migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.7.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "pino": "^9.7.0",
+    "pino-http": "^10.4.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.3",
+    "@types/supertest": "^6.0.3",
+    "eslint": "^9.26.0",
+    "prisma": "^6.7.0",
+    "supertest": "^7.1.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0",
+    "vitest": "^3.1.3"
+  }
+}

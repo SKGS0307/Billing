@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: trends_mart
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: Asia/Kolkata
+    ports:
+      - "5433:5432"
+    volumes:
+      - trends_mart_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trends_mart"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  trends_mart_data:
