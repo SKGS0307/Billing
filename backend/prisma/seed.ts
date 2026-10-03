@@ -71,14 +71,17 @@ async function main() {
     await prisma.rolePermission.createMany({ data: grants.map(({ id }) => ({ roleId: role.id, permissionId: id })) });
   }
 
-  const email = (process.env.SEED_ADMIN_EMAIL ?? 'admin@trendmart.local').trim().toLowerCase();
-  const password = process.env.SEED_ADMIN_PASSWORD ?? 'ChangeMe123!';
+  const production = process.env.NODE_ENV === 'production';
+  const email = (process.env.SEED_ADMIN_EMAIL ?? (production ? '' : 'admin@trendmart.local')).trim().toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD ?? (production ? '' : 'ChangeMe123!');
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) throw new Error('A valid SEED_ADMIN_EMAIL is required in production.');
+  if (password.length < 12 || (production && /change.?me|password|admin/i.test(password))) throw new Error('SEED_ADMIN_PASSWORD must be a strong, non-default password with at least 12 characters.');
   const passwordHash = await bcrypt.hash(password, 12);
   const adminRole = await prisma.role.findUniqueOrThrow({ where: { name: 'Admin' } });
   const user = await prisma.user.upsert({
     where: { email },
-    update: { name: 'Development Administrator', isActive: true },
-    create: { email, name: 'Development Administrator', passwordHash, mustChangePassword: true },
+    update: { isActive: true },
+    create: { email, name: production ? 'Store Administrator' : 'Development Administrator', passwordHash, mustChangePassword: true },
   });
   await prisma.userRole.upsert({
     where: { userId_roleId: { userId: user.id, roleId: adminRole.id } },

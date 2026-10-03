@@ -2,11 +2,11 @@
 
 Production-oriented local-first POS, billing and inventory management for a clothing retailer in Bareilly, Uttar Pradesh. Phases 1–10 are implemented as real database-backed workflows.
 
-## What Phase 1 includes
+## Foundation
 
 - React 19, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, React Hook Form, Zod and accessible Radix UI primitives.
 - Express 5 REST API with Prisma and PostgreSQL.
-- Bcrypt password hashing; opaque random sessions stored only as SHA-256 hashes.
+- Bcrypt password hashing; opaque random sessions stored only as keyed HMAC-SHA-256 hashes.
 - HttpOnly/SameSite cookies, login throttling, account lockout, exact-origin CORS, mutation-origin checks and Helmet headers.
 - Database-enforced users, roles, permissions, sessions, settings and audit logs.
 - Seeded Admin, Manager and Cashier roles with least-privilege grants.
@@ -65,9 +65,13 @@ The default development-only account is `admin@trendmart.local` / `ChangeMe123!`
 | `npm run db:migrate` | Apply committed migrations |
 | `npm run db:seed` | Upsert development foundation data |
 
-## Production and LAN deployment
+## Production deployment
 
-Build with `npm run build`, set `NODE_ENV=production`, configure a strong `AUTH_SECRET`, set `COOKIE_SECURE=true` behind HTTPS, and start with `npm run start -w backend`. Express serves the built frontend and `/api` from one origin.
+Production configuration is committed for a Vercel frontend and Render API/PostgreSQL deployment. Start with the [deployment runbook](docs/deployment.md). The API intentionally fails closed when its secret or trusted frontend origin is missing, and production database restore is disabled by default.
+
+For a single-host deployment, build with `npm run build`, set `NODE_ENV=production`, `SERVE_FRONTEND=true`, a strong generated `AUTH_SECRET`, the public HTTPS `APP_URL`, and `COOKIE_SECURE=true`, then start with `npm run start -w backend`.
+
+## LAN development
 
 For development over the LAN, Vite binds to all interfaces and proxies `/api` to the local backend. Open the shop computer's LAN address on another device. Restrict access with the host firewall; never expose PostgreSQL itself to the LAN or internet.
 
@@ -77,7 +81,7 @@ Timestamps use `timestamptz`; display uses `Asia/Kolkata`. Foundation migrations
 
 ## Backup and restore
 
-Admins can create and download custom-format PostgreSQL backups from **Data & backups**. Restore requires typing the exact `RESTORE <filename>` confirmation. Test restores against a disposable database before relying on them; restore is destructive.
+Admins can create and download custom-format PostgreSQL backups from **Data & backups**. On production hosting, use the database provider's managed backups as the primary recovery mechanism because application disks may be ephemeral. Restore is disabled unless `ALLOW_DATABASE_RESTORE=true`; when enabled it requires typing the exact `RESTORE <filename>` confirmation. Test restores against a disposable database before relying on them; restore is destructive.
 
 ## Documentation
 
@@ -86,6 +90,7 @@ Admins can create and download custom-format PostgreSQL backups from **Data & ba
 - [Business rules](docs/business-rules.md)
 - [API contract](docs/api-contract.md)
 - [Implementation checklist](docs/implementation-checklist.md)
+- [Production deployment](docs/deployment.md)
 
 ## Troubleshooting
 

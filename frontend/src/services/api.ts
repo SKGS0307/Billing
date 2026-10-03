@@ -12,6 +12,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<ApiS
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...init.headers },
   });
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new ApiClientError('INVALID_API_RESPONSE', response.ok ? 'The server returned an invalid response.' : 'The service is temporarily unavailable.', response.status);
+  }
   const body = await response.json() as ApiSuccess<T> | ApiFailure;
   if (!response.ok || !body.success) {
     const error = body as ApiFailure;

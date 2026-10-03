@@ -6,9 +6,10 @@ import { authService } from './auth.service.js';
 
 const cookieOptions = {
   httpOnly: true,
-  secure: env.COOKIE_SECURE,
+  secure: env.NODE_ENV === 'production' || env.COOKIE_SECURE,
   sameSite: 'strict' as const,
   path: '/',
+  priority: 'high' as const,
 };
 
 export const authController = {

@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
@@ -34,10 +35,12 @@ export function createApp() {
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
   app.use(pinoHttp({ logger }));
-  app.use(helmet({ contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false }));
+  app.use(helmet({ contentSecurityPolicy: env.NODE_ENV === 'production' && env.SERVE_FRONTEND ? undefined : false }));
   app.use(cors({ origin: env.APP_URL, credentials: true, methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'] }));
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
+  app.use('/api', rateLimit({ windowMs: 5 * 60 * 1000, limit: env.API_RATE_LIMIT, standardHeaders: 'draft-7', legacyHeaders: false, skip: (req) => req.path === '/health', message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again shortly.' } } }));
+  app.use('/api', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); res.setHeader('Pragma', 'no-cache'); next(); });
   app.use(verifyMutationOrigin);
 
   app.get('/api/health', async (_req, res, next) => {
@@ -66,8 +69,9 @@ export function createApp() {
   app.use('/api/reports', reportsRoutes);
   app.use('/api/data', dataRoutes);
   app.use('/api/backups', backupRoutes);
+  app.use('/api', notFound);
 
-  if (env.NODE_ENV === 'production') {
+  if (env.NODE_ENV === 'production' && env.SERVE_FRONTEND) {
     const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../frontend/dist');
     app.use(express.static(dist));
     app.get('/{*splat}', (_req, res) => res.sendFile(path.join(dist, 'index.html')));

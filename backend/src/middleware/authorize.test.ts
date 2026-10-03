@@ -2,10 +2,10 @@ import type { NextFunction, Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 import { requirePermission } from './authorize.js';
 
-function requestWith(permissions?: string[]) {
+function requestWith(permissions?: string[], mustChangePassword = false) {
   return {
     auth: permissions ? {
-      id: 'user-id', email: 'user@example.com', name: 'User', mustChangePassword: false,
+      id: 'user-id', email: 'user@example.com', name: 'User', mustChangePassword,
       roles: ['Test'], permissions, sessionId: 'session-id',
     } : undefined,
   } as Request;
@@ -28,5 +28,11 @@ describe('requirePermission', () => {
     const next = vi.fn() as NextFunction;
     requirePermission('dashboard:read')(requestWith(), {} as Response, next);
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 401, code: 'AUTHENTICATION_REQUIRED' }));
+  });
+
+  it('blocks operational access until a temporary password is changed', () => {
+    const next = vi.fn() as NextFunction;
+    requirePermission('dashboard:read')(requestWith(['dashboard:read'], true), {} as Response, next);
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 403, code: 'PASSWORD_CHANGE_REQUIRED' }));
   });
 });
